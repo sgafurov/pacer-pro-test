@@ -2,20 +2,82 @@
 
 ## Test details:
 
-Create a new Ruby on Rails model named Item with the following attributes: 
+### Create a new Ruby on Rails model named Item with the following attributes: 
 * name(string)
 * deleted_at(datetime)
 
-Implement a soft delete mechanism using the deleted_at attribute:
+```rails generate model Item name:string deleted_at:datetime```
+```
+class CreateItems < ActiveRecord::Migration[7.1]
+  def change
+    create_table :items do |t|
+      t.string :name
+      t.datetime :deleted_at
+
+      t.timestamps
+    end
+  end
+end
+```
+<em>located at pacer-pro-test/db/migrate/20231209015832_create_items.rb</em>
+
+### Implement a soft delete mechanism using the deleted_at attribute:
 * Add a method soft_delete that updates the deleted_at attribute with the current timestamp.
 * Add a method restore that sets the deleted_at attribute to nil.
 * Include a default scope in the Item model to exclude "deleted" items from normal queries.
 
-Write RSpec tests to ensure the soft delete functionality works correctly, here are some suggestions to start with:
+```
+class Item < ApplicationRecord
+    def soft_delete
+        #updates the deleted_at attribute with the current timestamp
+        update(deleted_at: Time.current)
+    end
+
+    def restore
+        #sets the deleted_at attribute to nil
+        update(deleted_at: nil)
+    end
+
+    #excludes "deleted" items from normal queries
+    default_scope {where(:deleted_at => nil)}
+end
+```
+<em>located at pacer-pro-test/app/models/item.rb</em>
+
+### Write RSpec tests to ensure the soft delete functionality works correctly, here are some suggestions to start with:
 * Test soft deleting an item.
 * Test restoring a soft-deleted item.
 * Test that soft-deleted items are excluded from normal queries.
 
+```
+require 'rails_helper'
+
+RSpec.describe Item, type: :model do
+    it "Soft deletes item" do
+        item = Item.create(name:"", deleted_at:nil)
+        item.soft_delete
+        expect(item.deleted_at).not_to be_nil
+    end
+
+    it "Restores soft deleted item" do
+        item = Item.create(name:"", deleted_at:nil)
+        item.soft_delete
+        expect(item.deleted_at).not_to be_nil
+        item.restore
+        expect(item.deleted_at).to be_nil
+    end
+
+    it "Excludes soft deleted items from normal queries" do
+        normalItem = Item.create(name:"", deleted_at:nil)
+        softDeletedItem = Item.create(name:"", deleted_at:nil)
+        softDeletedItem.soft_delete
+        expect(Item.all).to include(normalItem)
+        expect(Item.all).not_to include(softDeletedItem)
+    end
+
+end
+```
+<em>located at pacer-pro-test/spec/models/item_spec.rb</em>
 
 ## Implementation details:
 The soft delete and restore functionalities are defined in app/models/item.rb.<br />
