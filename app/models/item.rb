@@ -1,6 +1,6 @@
 class Item < ApplicationRecord
     def soft_delete
-        #updates the deleted_at attribute with the current timestamp.
+        #updates the deleted_at attribute with the current timestamp
         update(deleted_at: Time.current)
     end
 
@@ -9,5 +9,6 @@ class Item < ApplicationRecord
         update(deleted_at: nil)
     end
 
+    #excludes "deleted" items from normal queries
     default_scope {where(:deleted_at => nil)}
 end
