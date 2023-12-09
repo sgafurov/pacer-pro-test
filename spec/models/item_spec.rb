@@ -10,6 +10,7 @@ RSpec.describe Item, type: :model do
     it "Restores soft deleted item" do
         item = Item.create(name:"", deleted_at:nil)
         item.soft_delete
+        expect(item.deleted_at).not_to be_nil
         item.restore
         expect(item.deleted_at).to be_nil
     end
